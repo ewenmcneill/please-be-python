@@ -1,0 +1,79 @@
+#! /bin/sh
+# Automatically find and execute this script as Python.  Kind of like
+#
+# /usr/bin/env python
+#
+# but more persistent. This is a Shell / Python polyglot, until the end
+# of shell code marker.
+#
+# Permission to use, copy, modify, and/or distribute this software
+# for any purpose with or without fee is hereby granted.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+# WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+# AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+# DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA
+# OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+# TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# Written by Ewen McNeill <ewen@naos.co.nz>, 2020-08-19
+# Updated by Ewen McNeill <ewen@naos.co.nz>, 2021-12-23
+#---------------------------------------------------------------------------
+
+IGNORE_ME_PLEASE="""
+"  # Shell script, Python variable definition
+
+# Try the usual locations
+for INTERPRETER in python3 python2 python; do
+    PYTHON=$(command -v "${INTERPRETER}" 2>/dev/null)
+    if [ -n "${PYTHON}" ]; then
+       echo "Found Python in ${PYTHON}" >&2
+       exec "${PYTHON}" "$0" "$@"
+    fi
+done
+
+# Maybe we have Ansible or some other Python system program
+# whose homework we can copy?
+#
+for PROGRAM in ansible; do
+    PROGPATH=$(which "${PROGRAM}" 2>/dev/null)
+    if [ -n "${PROGPATH}" -a -r "${PROGPATH}" ]; then
+        PYTHON=$(head -1 $(command -v ansible) | sed 's/^#!//; s/^  *//; s/\/usr\/bin\/env //; s/ .*$//;')
+        if [ -n "${PYTHON}" ]; then
+           echo "Found Python in ${PYTHON}" >&2
+           exec "${PYTHON}" "$0" "$@"
+        fi
+    fi
+done
+
+# Or we have some random OS default location
+for PYTHON in /usr/libexec/platform-python; do
+    if [ -x "${PYTHON}" ]; then
+       echo "Found Python in ${PYTHON}" >&2
+       exec "${PYTHON}" "$0" "$@"
+    fi
+done
+
+echo "Sorry, I have no idea where Python is.  Is it even installed?!" >&2
+exit 254
+
+# End of shell script, start of shared code
+"""
+# "
+
+#---------------------------------------------------------------------------
+# Python code begins here
+#
+# NOTE: you cannot do this:
+#
+# from __future__ import print_function 
+#
+# as it has to be at the start of the file, and we have shell boilerplate
+# at the start of the file.
+#
+
+import sys
+
+print("Python Version is %s" % (sys.version,))
